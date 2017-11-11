@@ -1,6 +1,5 @@
 <?php
-
-$_ENV['yii_config'] = file_get_contents('../../.env.json');
+$_ENV['yii_config'] = json_decode(file_get_contents(__DIR__ . '/../../.env.json'), true);
 
 return [
     'aliases' => [

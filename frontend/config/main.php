@@ -11,9 +11,11 @@ return [
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
     'controllerNamespace' => 'frontend\controllers',
+    'homeUrl' => '/',
     'components' => [
         'request' => [
             'csrfParam' => '_csrf-frontend',
+            'baseUrl' => '',
         ],
         'user' => [
             'identityClass' => 'common\models\User',
@@ -36,14 +38,19 @@ return [
         'errorHandler' => [
             'errorAction' => 'site/error',
         ],
-        /*
+
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
+                '<controller>/<action>' => '<controller>/<action>'
             ],
         ],
-        */
+        'assetManager' => [
+            'class' => 'yii\web\AssetManager',
+//            'baseUrl' => '@web'
+        ],
+
     ],
     'params' => $params,
 ];

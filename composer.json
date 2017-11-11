@@ -1,16 +1,13 @@
 {
-    "name": "yiisoft/yii2-app-advanced",
-    "description": "Yii 2 Advanced Project Template",
-    "keywords": ["yii2", "framework", "advanced", "project template"],
-    "homepage": "http://www.yiiframework.com/",
+    "name": "Rototot/mem-game",
+    "description": "Mem game",
+    "keywords": ["yii2", "framework", "advanced", "mem game"],
+    "homepage": "https://github.com/Rototot/mem-game",
     "type": "project",
     "license": "BSD-3-Clause",
     "support": {
-        "issues": "https://github.com/yiisoft/yii2/issues?state=open",
-        "forum": "http://www.yiiframework.com/forum/",
-        "wiki": "http://www.yiiframework.com/wiki/",
-        "irc": "irc://irc.freenode.net/yii",
-        "source": "https://github.com/yiisoft/yii2"
+        "issues": "https://github.com/Rototot/mem-game/issues?state=open",
+        "source": "https://github.com/Rototot/mem-game"
     },
     "minimum-stability": "dev",
     "require": {
@@ -19,7 +16,8 @@
         "yiisoft/yii2-bootstrap": "~2.0.0",
         "yiisoft/yii2-swiftmailer": "~2.0.0 || ~2.1.0",
         "yiisoft/yii2-httpclient": "~2.0.0",
-        "yiisoft/yii2-queue": "~2.0.0"
+        "yiisoft/yii2-queue": "~2.0.0",
+        "electrolinux/phpquery" : "dev-master"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.0.0",

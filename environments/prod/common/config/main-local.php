@@ -3,9 +3,9 @@ return [
     'components' => [
         'db' => [
             'class' => 'yii\db\Connection',
-            'dsn' => 'mysql:host=localhost;dbname=yii2advanced',
-            'username' => 'root',
-            'password' => '',
+            'dsn' => 'pgsql:host=localhost;dbname=' . $_ENV['yii_config']['db']['dbname'],
+            'username' => $_ENV['yii_config']['db']['username'],
+            'password' => $_ENV['yii_config']['db']['password'],
             'charset' => 'utf8',
         ],
         'mailer' => [
