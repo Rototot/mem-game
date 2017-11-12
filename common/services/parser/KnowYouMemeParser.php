@@ -111,27 +111,27 @@ class KnowYouMemeParser extends BaseObject
 
     public function parseItemPage(string $url, int $idOnSite = null)
     {
-        $url = 'http://knowyourmeme.com/memes/subcultures/true-capitalist-radio';
 
 
         $page = $this->getPage($url);
-        $article = pq($page)->find('article.entry:first');
+        $article = pq($page)->find('article.entry:first')->get(0);
+
 
 
         //парсим инфу о меме
         $meme = new Meme();
 
         //about text
-        $about = pq($page)->find('#about')->next('p:first');
+        $about = pq($page)->find('#about')->next('p:first')->get(0);
         $meme->about = $about->textContent ?? null;
 
          //aside
-        $asideYear = pq($page)->find('#entry_body > aside.left dt:contains(Year) + dd:first');
+        $asideYear = pq($page)->find('#entry_body > aside.left dt:contains(Year) + dd:first')->get(0);
         $meme->origin_year = $this->filterBase($asideYear->textContent ?? null);
 
         //status
-        $htmlStatus = pq($page)->find('#entry_body > aside.left dt:contains(Status) + dd:first');
-        $meme->site_status = $this->filterBase($htmlStatus);
+        $htmlStatus = pq($page)->find('#entry_body > aside.left dt:contains(Status) + dd:first')->get(0);
+        $meme->site_status = $this->filterBase($htmlStatus->textContent ?? null);
 
 
         //tags
@@ -144,16 +144,16 @@ class KnowYouMemeParser extends BaseObject
 
         //id_mem
         if(!$idOnSite){
-            $idOnSite = str_replace('entry_18909', 'entry_', $article->getAttribute('id'));
-            $idOnSite = intval($this->filterBase($idOnSite));
+            preg_match('/_([0-9]+)$/i', $article->getAttribute('id'), $matches);
+            $idOnSite = intval($this->filterBase($matches[1] ?? null));
         }
         $meme->id_on_site = $idOnSite;
 
         //photo and title
-        $photo = $article ? pq($article)->find('a.photo > img:first') : null;
+        $photo = $article ? pq($article)->find('a.photo > img:first')->get(0) : null;
         if($photo){
             $meme->title = $photo->getAttribute('title');
-            $meme->image = $photo->getAttribute('src');
+            $meme->image = $photo->getAttribute('data-src');
         }
 
         $meme->url = $url;

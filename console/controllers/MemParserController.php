@@ -21,7 +21,9 @@ class MemParserController extends Controller
         $service = new KnowYouMemeParser();
 
 //        $service->parseItemsList();
-        $service->parseItemPage();
+
+        $url = 'http://knowyourmeme.com/memes/subcultures/true-capitalist-radio';
+        $service->parseItemPage($url);
     }
 
 }

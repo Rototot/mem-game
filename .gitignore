@@ -35,3 +35,10 @@ phpunit.phar
 /.vagrant
 
 #.env.json
+
+
+upload/*
+
+!upload
+!upload/.gitkeep
+

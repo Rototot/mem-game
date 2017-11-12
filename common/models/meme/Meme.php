@@ -19,6 +19,8 @@ use yii\helpers\Json;
  * @property string $site_status
  * @property string $created_at
  * @property string $updated_at
+ *
+ * @property MemeSection[] $memeSections
  */
 class Meme extends \yii\db\ActiveRecord
 {
@@ -89,5 +91,10 @@ class Meme extends \yii\db\ActiveRecord
     public static function find()
     {
         return new MemeQuery(get_called_class());
+    }
+
+    public function getMemeSections()
+    {
+        return $this->hasMany(MemeSection::className(), ['meme_id' => 'id']);
     }
 }
