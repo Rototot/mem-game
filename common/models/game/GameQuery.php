@@ -9,10 +9,30 @@ namespace common\models\game;
  */
 class GameQuery extends \yii\db\ActiveQuery
 {
-    /*public function active()
+    /**
+     * @return $this
+     */
+    public function active()
     {
-        return $this->andWhere('[[status]]=1');
-    }*/
+        return $this->andWhere(['status' => Game::STATUS_ACTIVE]);
+    }
+
+    /**
+     * @return $this
+     */
+    public function finished()
+    {
+        return $this->andWhere(['status' => Game::STATUS_FINISHED]);
+    }
+
+    /**
+     * @param string|int|array|null $playerID
+     * @return $this
+     */
+    public function byPlayer($playerID)
+    {
+        return $this->andWhere(['player_id' => $playerID]);
+    }
 
     /**
      * @inheritdoc

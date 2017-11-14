@@ -14,13 +14,14 @@ class MemParserController extends Controller
 {
 
 
-
     public function actionParsePage()
     {
 
         $service = new KnowYouMemeParser();
 
-//        $service->parseItemsList();
+        $url = 'http://knowyourmeme.com/memes';
+
+//        $service->parseItemsList($url);
 
         $url = 'http://knowyourmeme.com/memes/subcultures/true-capitalist-radio';
         $service->parseItemPage($url);

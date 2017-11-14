@@ -34,7 +34,7 @@ phpunit.phar
 # vagrant runtime
 /.vagrant
 
-#.env.json
+.env.json
 
 
 upload/*

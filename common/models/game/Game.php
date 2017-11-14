@@ -6,6 +6,7 @@ use common\models\meme\Meme;
 use common\models\meme\MemeQuery;
 use common\models\User;
 use Yii;
+use yii\caching\TagDependency;
 
 /**
  * This is the model class for table "{{%game}}".
@@ -13,6 +14,7 @@ use Yii;
  * @property int $id
  * @property int $meme_id
  * @property int $player_id
+ * @property boolean $player_is_surrender
  * @property int $score
  * @property int $status
  * @property string $created_at
@@ -21,9 +23,15 @@ use Yii;
  * @property Meme $meme
  * @property User $player
  * @property GameMemeSection[] $gameMemeSections
+ * @property GameHistory[] $gameHistories
  */
 class Game extends \yii\db\ActiveRecord
 {
+
+    const STATUS_ACTIVE = 10;
+    const STATUS_FINISHED = 15;             //игра завершена
+
+
     /**
      * @inheritdoc
      */
@@ -39,8 +47,12 @@ class Game extends \yii\db\ActiveRecord
     {
         return [
             [['meme_id', 'player_id'], 'required'],
-            [['meme_id', 'player_id', 'score', 'status'], 'default', 'value' => null],
+            ['status', 'default', 'value' => $this->defaultStatus()],
+            ['score', 'default', 'value' => 0],
+
             [['meme_id', 'player_id', 'score', 'status'], 'integer'],
+            [['player_is_surrender'], 'boolean'],
+            ['score', 'default', 'value' => 0],
             [['created_at', 'updated_at'], 'safe'],
             [['meme_id'], 'exist', 'skipOnError' => true, 'targetClass' => Meme::className(), 'targetAttribute' => ['meme_id' => 'id']],
             [['player_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['player_id' => 'id']],
@@ -88,11 +100,60 @@ class Game extends \yii\db\ActiveRecord
     }
 
     /**
+     * @return GameHistoryQuery
+     */
+    public function getGameHistories()
+    {
+        return $this->hasMany(GameHistory::className(), ['game_id' => 'id']);
+    }
+
+    public function afterSave($insert, $changedAttributes)
+    {
+        TagDependency::invalidate(Yii::$app->cache, [static::tableName() . '-' . $this->id]);
+        parent::afterSave($insert, $changedAttributes);
+    }
+
+    public function afterDelete()
+    {
+        TagDependency::invalidate(Yii::$app->cache, [static::tableName() . '-' . $this->id]);
+        parent::afterDelete();
+    }
+
+    public function getStatusLabel()
+    {
+
+    }
+
+    /**
+     * @return int
+     */
+    public function defaultStatus()
+    {
+        return self::STATUS_ACTIVE;
+    }
+
+    /**
      * @inheritdoc
      * @return GameQuery the active query used by this AR class.
      */
     public static function find()
     {
         return new GameQuery(get_called_class());
+    }
+
+    /**
+     * @return Game|null
+     */
+    public static function findLastFinished()
+    {
+        $game = static::find()
+            ->finished()
+            ->byPlayer(Yii::$app->user->id)
+            ->orderBy('id DESC')
+            ->limit(1)
+            ->one()
+            ;
+
+        return $game;
     }
 }

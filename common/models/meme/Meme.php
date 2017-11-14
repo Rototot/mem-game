@@ -2,7 +2,11 @@
 
 namespace common\models\meme;
 
+use common\models\game\Game;
+use common\models\game\GameQuery;
 use Yii;
+use yii\db\Expression;
+use yii\db\Transaction;
 use yii\helpers\Json;
 
 /**
@@ -21,6 +25,7 @@ use yii\helpers\Json;
  * @property string $updated_at
  *
  * @property MemeSection[] $memeSections
+ * @property Game[] $games
  */
 class Meme extends \yii\db\ActiveRecord
 {
@@ -93,8 +98,37 @@ class Meme extends \yii\db\ActiveRecord
         return new MemeQuery(get_called_class());
     }
 
+    /**
+     * @return Meme|null
+     */
+    public static function findRandom()
+    {
+        $transaction = Yii::$app->db->beginTransaction(Transaction::SERIALIZABLE);
+
+        //ищем мем, который ещё не участвовал или не участовал в игре у текущего игрока
+        $query = Meme::find()
+            ->joinWith('games g')
+            ->where(['or', ['g.id' => null], ['!=', 'g.player_id', Yii::$app->user->id ]])
+            ->orderBy(new Expression('RANDOM()'))
+            ->limit(1);
+
+        $meme = $query->one()
+        ;
+        $transaction->commit();
+
+        return $meme;
+    }
+
     public function getMemeSections()
     {
         return $this->hasMany(MemeSection::className(), ['meme_id' => 'id']);
+    }
+
+    /**
+     * @return GameQuery
+     */
+    public function getGames()
+    {
+        return $this->hasMany(Game::className(), ['meme_id' => 'id']);
     }
 }

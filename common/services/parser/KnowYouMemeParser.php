@@ -24,7 +24,12 @@ class KnowYouMemeParser extends BaseObject
     }
 
 
-
+    /**
+     * @param string $url
+     * @param int $min
+     * @param int $max
+     * @return array
+     */
     public function parsePagination(string $url, int $min = 1, int $max = -1)
     {
         //находим пагинацию
@@ -57,12 +62,12 @@ class KnowYouMemeParser extends BaseObject
         ];
     }
 
-
+    /**
+     * @param string $url
+     * @return bool
+     */
     public function parseItemsList(string $url)
     {
-
-        $url = 'http://knowyourmeme.com/memes';
-
         //парсим список мемов
         $document = $this->getPage($url);
 
@@ -100,7 +105,6 @@ class KnowYouMemeParser extends BaseObject
             ];
 
             $items[] = $itemData;
-
         }
 
 
@@ -161,6 +165,8 @@ class KnowYouMemeParser extends BaseObject
 
         //сохраняем в базу
         $serviceMem->create([]);
+
+        return true;
     }
 
 
@@ -186,7 +192,9 @@ class KnowYouMemeParser extends BaseObject
     }
 
 
-
+    /**
+     * @return Client
+     */
     public function getHttpClient()
     {
         if(is_null($this->_httpClient)){

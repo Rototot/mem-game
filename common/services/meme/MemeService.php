@@ -10,6 +10,7 @@ use Imagine\Image\Point;
 use Yii;
 use yii\base\BaseObject;
 use yii\base\Exception;
+use yii\db\Transaction;
 use yii\helpers\FileHelper;
 use yii\httpclient\Client;
 use yii\imagine\Image;
@@ -104,6 +105,11 @@ class MemeService extends BaseObject
     public function setMeme(Meme $meme)
     {
         $this->meme = $meme;
+    }
+
+    public static function findRandom()
+    {
+
     }
 
 
