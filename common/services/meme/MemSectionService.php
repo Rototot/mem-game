@@ -9,6 +9,7 @@ use Imagine\Image\ImageInterface;
 use Imagine\Image\Point;
 use yii\base\BaseObject;
 use yii\base\Exception;
+use yii\base\NotSupportedException;
 
 /**
  * Class MemSectionService
@@ -35,19 +36,18 @@ class MemSectionService extends BaseObject
         $memeSection = $this->getMemeSection();
         $memeSection->attributes = $attributes;
         $memeSection->meme_id = $meme->id;
-        //todo check new record
+
+        if(!$meme->isNewRecord){
+            throw new Exception('Update not supported');
+        }
 
         if (!$memeSection->validate()) {
             throw new Exception('Incorrect attributes: ' . json_encode($memeSection->firstErrors));
         }
 
-        //todo бьем на фрагменты ещё
-
-
         if (!$memeSection->save(false)) {
             throw new Exception('Cannot save mem');
         }
-
 
         return $memeSection;
 
@@ -56,7 +56,7 @@ class MemSectionService extends BaseObject
 
     public function update(Meme $meme, array $attributes = [])
     {
-
+        throw new NotSupportedException('Cannot release');
     }
 
     /**
@@ -76,6 +76,11 @@ class MemSectionService extends BaseObject
     }
 
 
+    /**
+     * Проверка что пустой или сплошной цвет
+     * @param ImageInterface $image
+     * @return bool
+     */
     public function checkIsVoid(ImageInterface $image)
     {
 
@@ -88,7 +93,7 @@ class MemSectionService extends BaseObject
                 $color = $image->getColorAt(new Point($x, $y));
 
 
-                $colorValue = $color->getPalette()->color();
+//                $colorValue = $color->getPalette()->color();
                 //проверяем прозрачность
                 if($alwaysAlpha){
                     $alwaysAlpha = !$color->isOpaque();

@@ -70,6 +70,7 @@ class Game extends \yii\db\ActiveRecord
             'player_id' => Yii::t('game', 'Player ID'),
             'score' => Yii::t('game', 'Score'),
             'status' => Yii::t('game', 'Status'),
+            'player_is_surrender' => Yii::t('game', 'Player is surrender'),
             'created_at' => Yii::t('game', 'Created At'),
             'updated_at' => Yii::t('game', 'Updated At'),
         ];

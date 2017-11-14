@@ -24,6 +24,7 @@ class MemParserController extends Controller
 //        $service->parseItemsList($url);
 
         $url = 'http://knowyourmeme.com/memes/subcultures/true-capitalist-radio';
+        $url = 'http://knowyourmeme.com/memes/wtf-is-this-shit';
         $service->parseItemPage($url);
     }
 

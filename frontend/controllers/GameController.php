@@ -10,9 +10,11 @@ namespace frontend\controllers;
 
 
 use common\models\game\Game;
+use common\models\game\GameHistorySearch;
 use common\services\game\GameService;
 use frontend\models\game\GameForm;
 use yii\filters\AccessControl;
+use yii\filters\VerbFilter;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 
@@ -32,6 +34,15 @@ class GameController extends Controller
                         'allow' => true,
                         'roles' => ['@'],
                     ],
+                ],
+            ],
+            'verbs' => [
+                'class' => VerbFilter::className(),
+                'actions' => [
+                    'start' => ['POST'],
+                    'skip-move' => ['POST'],
+                    'surrender' => ['POST'],
+                    'check-answer' => ['POST'],
                 ],
             ],
         ];
@@ -59,6 +70,7 @@ class GameController extends Controller
      */
     public function actionPlay()
     {
+
         //ищем активную игру
         $serviceGame = new GameService(new Game());
 
@@ -68,9 +80,18 @@ class GameController extends Controller
 
         $gameFormAnswer = new GameForm(['scenario' => GameForm::SCENARIO_CHECK_ANSWER]);
 
+        $prepareActiveGameSections = $serviceGame->prepareGameMemeSections($game->gameMemeSections);
+
+        //history
+        $gameHistorySearch = new GameHistorySearch();
+        $dataProvider = $gameHistorySearch->search([]);
+
         return $this->render('play', [
             'game' => $game,
             'gameFormAnswer' => $gameFormAnswer,
+            'prepareActiveGameSections' => $prepareActiveGameSections,
+            'gameHistorySearch' => $gameHistorySearch,
+            'dataProvider' => $dataProvider,
         ]);
 
     }
@@ -78,10 +99,16 @@ class GameController extends Controller
     /**
      * Пропускаем ход
      * @return \yii\web\Response
+     * @throws NotFoundHttpException
      */
     public function actionSkipMove()
     {
         $serviceGame = new GameService(new Game());
+
+        if(!$game = $serviceGame->getActiveGame()){
+            throw new NotFoundHttpException('Not found game');
+        }
+        $serviceGame->setGame($game);
 
         $serviceGame->skipMove();
         return $this->redirect(['play']);
@@ -91,10 +118,16 @@ class GameController extends Controller
     /**
      * Сдаться
      * @return \yii\web\Response
+     * @throws NotFoundHttpException
      */
     public function actionSurrender()
     {
         $serviceGame = new GameService(new Game());
+
+        if(!$game = $serviceGame->getActiveGame()){
+            throw new NotFoundHttpException('Not found game');
+        }
+        $serviceGame->setGame($game);
 
         $serviceGame->surrender();
         return $this->redirect(['result']);
@@ -108,7 +141,16 @@ class GameController extends Controller
     {
         //последняя игра
         $game = Game::findLastFinished();
-        return $this->render('result', ['game' => $game]);
+
+        //history
+        $gameHistorySearch = new GameHistorySearch();
+        $dataProvider = $gameHistorySearch->search([]);
+
+        return $this->render('result', [
+            'game' => $game,
+            'gameHistorySearch' => $gameHistorySearch,
+            'dataProvider' => $dataProvider,
+        ]);
     }
 
     /**

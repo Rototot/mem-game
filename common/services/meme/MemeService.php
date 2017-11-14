@@ -3,10 +3,12 @@
 namespace common\services\meme;
 
 
+use common\models\game\GameMemeSection;
 use common\models\meme\Meme;
 use common\models\meme\MemeSection;
 use Imagine\Image\Box;
 use Imagine\Image\Point;
+use SebastianBergmann\CodeCoverage\Report\PHP;
 use Yii;
 use yii\base\BaseObject;
 use yii\base\Exception;
@@ -40,22 +42,23 @@ class MemeService extends BaseObject
         $meme = $this->getMeme();
         $meme->attributes = $attributes;
 
-        //todo check new record
 
-        if (!$meme->validate()) {
-            throw new Exception('Incorrect attributes');
+        if(!$meme->isNewRecord){
+            throw new Exception('Update not supported');
         }
 
-        //todo бьем на фрагменты ещё
+        if (!$meme->validate()) {
+            throw new Exception('Incorrect attributes . ' . implode(PHP_EOL, $meme->firstErrors));
+        }
+
         $transaction = Yii::$app->db->beginTransaction();
         try {
-
-
 
             if (!$meme->save(false)) {
                 throw new Exception('Cannot save mem');
             }
 
+            //бьем на фрагменты
             $this->divide();
 
             $transaction->commit();
@@ -76,7 +79,9 @@ class MemeService extends BaseObject
         $meme = $this->getMeme();
         $meme->attributes = $attributes;
 
-        //todo check new record
+        if($meme->isNewRecord){
+            throw new Exception('Insert not supported');
+        }
 
         if (!$meme->validate()) {
             throw new Exception('Incorrect attributes');
@@ -107,11 +112,6 @@ class MemeService extends BaseObject
         $this->meme = $meme;
     }
 
-    public static function findRandom()
-    {
-
-    }
-
 
     /**
      * Разделение на блоки
@@ -130,47 +130,71 @@ class MemeService extends BaseObject
 
 
         //идем по изображению
-        for ($x = 0; $x < $imageWidth; $x += $width) {
+        $widthBlock = round($imageWidth / $width, 0, PHP_ROUND_HALF_UP);
+        $heightBlock = round($imageHeight / $height, 0, PHP_ROUND_HALF_UP);
 
-            //проверяем границы
-            $newWidth = ($x + $width) > $imageWidth ? $imageWidth - $x : $width;
-            $memeSectionService = new MemSectionService(new MemeSection());
-            for ($y = 0; $y < $imageHeight; $y += $height) {
-                $newHeight = ($y + $height) > $imageHeight ? $imageHeight - $y : $height;
 
-                $point = new Point($x, $y);
-                $box = new Box($newWidth, $newHeight);
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
 
-                //сохраняем файл
+            $this->update([
+                'width' => $imageWidth,
+                'height' => $imageHeight,
+            ]);
 
-                $dirSave = implode('/', [
-                    'upload',
-                    $this->getMeme()->id_on_site,
-                    $width . '_' . $height,
-                ]);
-                $fullPath = Yii::getAlias('@root/' . $dirSave);
-                FileHelper::createDirectory($fullPath);
+            $blockX = 0;
+            $blockY = 0;
+            for ($x = 0; $x < $imageWidth; $x += $widthBlock) {
+                //проверяем границы
+                $newWidth = ($x + $widthBlock) > $imageWidth ? $imageWidth - $x : $width;
+                $memeSectionService = new MemSectionService(new MemeSection());
+                $blockY = 0;
+                for ($y = 0; $y < $imageHeight; $y += $heightBlock) {
+                    $newHeight = ($y + $heightBlock) > $imageHeight ? $imageHeight - $y : $heightBlock;
 
-                $fileName = 'img_block_' . $x . '_' . $y . '_' . $width . '_' . $height . '.png';
+                    $point = new Point($x, $y);
+                    $box = new Box($newWidth, $newHeight);
 
-                $fullPath .= '/' . $fileName;
-                $dirSave .= '/' . $fileName;
-                $newImage = $image->copy()->crop($point, $box)->save(\Yii::getAlias($fullPath));
+                    //сохраняем файл
+                    $dirSave = implode('/', [
+                        'upload',
+                        $this->getMeme()->id_on_site,
+                        $widthBlock . '_' . $heightBlock,
+                    ]);
+                    $fullPath = Yii::getAlias('@root/' . $dirSave);
+                    FileHelper::createDirectory($fullPath);
 
-                //сохраняем в базе секцию
-                $memeSectionService->setMemeSection(new MemeSection());
-                $memeSectionService->create($this->getMeme(), [
-                    'x' => $x,
-                    'y' => $y,
-                    'width' => $newWidth,
-                    'height' => $newHeight,
-                    'filePath' => $dirSave,
-                    'is_empty' => $memeSectionService->checkIsVoid($newImage),
-                ]);
+                    $fileName = 'img_block_' . $x . '_' . $y . '_' . $width . '_' . $height . '.png';
+
+                    $fullPath .= '/' . $fileName;
+                    $dirSave .= '/' . $fileName;
+                    $newImage = $image->copy()->crop($point, $box)->save(\Yii::getAlias($fullPath));
+
+                    //сохраняем в базе секцию
+                    $memeSectionService->setMemeSection(new MemeSection());
+                    $memeSectionService->create($this->getMeme(), [
+                        'x' => $x,
+                        'y' => $y,
+                        'block_x' => $blockX,
+                        'block_y' => $blockY,
+                        'width' => $newWidth,
+                        'height' => $newHeight,
+                        'filePath' => $dirSave,
+                        //fixme проверка
+//                    'is_empty' => $memeSectionService->checkIsVoid($newImage),
+                    ]);
+
+                    $blockY++;
+                }
+                $blockX++;
             }
 
+            $transaction->commit();
+            return true;
+        } catch (Exception $e) {
+            $transaction->rollBack();
+            throw $e;
         }
-
     }
 
 }

@@ -20,6 +20,8 @@ class m171111_170150_crate_tbl_meme extends Migration
             'url' => $this->string(255)->notNull(),
             'about' => $this->text(),
             'image' => $this->string(255)->notNull(),
+            'width' => $this->integer(),
+            'height' => $this->integer(),
             'origin_year' => $this->integer(),
             'tags' => 'JSONB DEFAULT \'{}\' NOT NULL',
             'site_status' => $this->string(20)->notNull(),

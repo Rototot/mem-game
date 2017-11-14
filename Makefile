@@ -1,5 +1,4 @@
-build-dev:
-	composer-install-dev
+build-dev: composer-install-dev migrate-up
 
 composer-install:
 	composer install
@@ -15,3 +14,6 @@ env-prod:
 
 env-dev:
 	php init --env=Development --overwrite=All
+
+migrate-up:
+	php yii migrate --interactive=0

@@ -2,6 +2,10 @@
 
 namespace common\models\meme;
 
+use common\models\game\Game;
+use common\models\game\GameMemeSection;
+use common\models\game\GameMemeSectionQuery;
+use common\models\game\GameQuery;
 use Yii;
 
 /**
@@ -14,11 +18,14 @@ use Yii;
  * @property int $height
  * @property int $x
  * @property int $y
+ * @property int $block_x
+ * @property int $block_y
  * @property string $filePath
  * @property string $created_at
  * @property string $updated_at
  *
  * @property Meme $meme
+ * @property GameMemeSection[] $gameMemeSections
  */
 class MemeSection extends \yii\db\ActiveRecord
 {
@@ -38,7 +45,7 @@ class MemeSection extends \yii\db\ActiveRecord
         return [
             [['meme_id', 'x', 'y', 'filePath'], 'required'],
             [['meme_id', 'width', 'height', 'x', 'y'], 'default', 'value' => null],
-            [['meme_id', 'width', 'height', 'x', 'y'], 'integer'],
+            [['meme_id', 'width', 'height', 'x', 'y', 'block_x', 'block_y'], 'integer'],
             [['filePath'], 'string', 'max' => 255],
             [['is_empty'], 'boolean'],
             [['created_at', 'updated_at'], 'safe'],
@@ -70,6 +77,32 @@ class MemeSection extends \yii\db\ActiveRecord
     public function getMeme()
     {
         return $this->hasOne(Meme::className(), ['id' => 'meme_id']);
+    }
+
+    /**
+     * @return GameMemeSectionQuery
+     */
+    public function getGameMemeSections()
+    {
+        return $this->hasMany(GameMemeSection::className(), ['meme_section_id' => 'id']);
+    }
+
+    /**
+     * @return GameQuery
+     */
+    public function getGame()
+    {
+        return $this->hasMany(Game::className(), ['id' => 'game_id'])
+            ->via('gameMemeSections');
+    }
+
+    /**
+     * Web путь к изображению
+     * @return string
+     */
+    public function getImageWebPath()
+    {
+        return '/' . $this->filePath;
     }
 
     /**

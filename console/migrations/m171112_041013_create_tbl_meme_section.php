@@ -20,6 +20,8 @@ class m171112_041013_create_tbl_meme_section extends Migration
             'height' => $this->integer()->notNull()->defaultValue(16),
             'x' => $this->integer()->notNull(),
             'y' => $this->integer()->notNull(),
+            'block_x' => $this->integer()->notNull()->comment('позиция блока X'),
+            'block_y' => $this->integer()->notNull()->comment('позиция блока Y'),
             'filePath' => $this->string(255)->notNull(),
             'created_at' => $this->timestamp()->defaultExpression('NOW()'),
             'updated_at' => $this->timestamp()->defaultExpression('NOW()'),

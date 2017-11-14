@@ -118,7 +118,7 @@ class KnowYouMemeParser extends BaseObject
 
 
         $page = $this->getPage($url);
-        $article = pq($page)->find('article.entry:first')->get(0);
+        $article = pq($page)->find('#content article.entry:first')->get(0);
 
 
 

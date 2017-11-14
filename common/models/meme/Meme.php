@@ -18,6 +18,8 @@ use yii\helpers\Json;
  * @property string $url
  * @property string $about
  * @property string $image
+ * @property int $width
+ * @property int $heigth
  * @property int $origin_year
  * @property string $tags
  * @property string $site_status
@@ -44,7 +46,8 @@ class Meme extends \yii\db\ActiveRecord
     {
         return [
             [['id_on_site', 'origin_year'], 'default', 'value' => null],
-            [['id_on_site', 'origin_year'], 'integer'],
+            [['id_on_site', 'origin_year', 'width', 'height'], 'integer'],
+            ['id_on_site', 'unique'],
             [['title', 'url', 'image', 'site_status'], 'required'],
             [['about', 'tags'], 'string'],
             [['created_at', 'updated_at'], 'safe'],
@@ -103,8 +106,6 @@ class Meme extends \yii\db\ActiveRecord
      */
     public static function findRandom()
     {
-        $transaction = Yii::$app->db->beginTransaction(Transaction::SERIALIZABLE);
-
         //ищем мем, который ещё не участвовал или не участовал в игре у текущего игрока
         $query = Meme::find()
             ->joinWith('games g')
@@ -112,13 +113,13 @@ class Meme extends \yii\db\ActiveRecord
             ->orderBy(new Expression('RANDOM()'))
             ->limit(1);
 
-        $meme = $query->one()
-        ;
-        $transaction->commit();
-
+        $meme = $query->one();
         return $meme;
     }
 
+    /**
+     * @return MemeSectionQuery
+     */
     public function getMemeSections()
     {
         return $this->hasMany(MemeSection::className(), ['meme_id' => 'id']);

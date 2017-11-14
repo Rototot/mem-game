@@ -1,6 +1,8 @@
 <?php
 namespace frontend\controllers;
 
+use common\models\game\Game;
+use common\services\game\GameService;
 use Yii;
 use yii\base\InvalidParamException;
 use yii\web\BadRequestHttpException;
@@ -72,6 +74,8 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
+        $service = new GameService(new Game());
+        $service->removeIdActiveGame();
         return $this->render('index');
     }
 
