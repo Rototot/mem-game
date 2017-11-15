@@ -24,6 +24,15 @@ class MemeQuery extends \yii\db\ActiveQuery
     }
 
     /**
+     * @param $url
+     * @return $this
+     */
+    public function byUrl($url)
+    {
+        return $this->andWhere(['url' => $url]);
+    }
+
+    /**
      * @inheritdoc
      * @return Meme[]|array
      */

@@ -8,7 +8,10 @@ make build-prod
 ```
 * также должны быть настрены очереди RabbitMQ
 * установлен memcache
-
+* для парсинга и подготовки мемов запустить
+```
+php yii mem-parser/parse-page
+```
 
 ## Тестовый пользователь
 login: user

@@ -61,6 +61,12 @@ $hintOriginIsUser = $game->getGameHistories()->byType(GameHistory::TYPE_HINT_YEA
                             <p class="list-group-item-text">
                                 - 10 баллов. Можно использовать 1 раз
                             </p>
+                            <?php if ($game->getGameHistories()->byType(GameHistory::TYPE_HINT_YEAR_ORIGIN)->exists()): ?>
+                                <br/>
+                                <p class="list-group-item-text">
+                                    <b>Подсказка:</b> <span><?= $game->meme->origin_year; ?></span>
+                                </p>
+                            <?php endif; ?>
                         </a>
                         <a href="<?= Url::to(['hint', 'type' => GameHistory::TYPE_HINT_RANDOM_TAG]) ?>"
                            class="list-group-item">
@@ -88,12 +94,12 @@ $hintOriginIsUser = $game->getGameHistories()->byType(GameHistory::TYPE_HINT_YEA
                                     'action' => ['skip-move'],
                                     'method' => 'post',
                                 ]); ?>
-                                    <?= Html::submitButton('Пропустить ход и получить следующий блок. (-1 балл)', [
-                                        'class' => 'btn btn-primary btn-block',
-                                        'data' => [
-                                            'method' => 'post',
-                                        ],
-                                    ]) ?>
+                                <?= Html::submitButton('Пропустить ход и получить следующий блок. (-1 балл)', [
+                                    'class' => 'btn btn-primary btn-block',
+                                    'data' => [
+                                        'method' => 'post',
+                                    ],
+                                ]) ?>
                                 <?php $form::end(); ?>
                             </div>
                             <div class="col-sm-12">

@@ -2,6 +2,7 @@
 
 namespace console\controllers;
 
+use common\models\meme\Meme;
 use common\services\parser\KnowYouMemeParser;
 use yii\console\Controller;
 
@@ -12,8 +13,6 @@ use yii\console\Controller;
  */
 class MemParserController extends Controller
 {
-
-
 
 
     public function actionParsePage()
@@ -33,13 +32,13 @@ class MemParserController extends Controller
         $countAllList = count($listLinks);
         $this->stdout("\n" . 'Найдено списков: ' . $countAllList);
 
-        foreach ($listLinks as $listLink){
+        foreach ($listLinks as $listLink) {
             $itemsLinks = $service->parseItemsList($listLink);
             $countAllItems = count($itemsLinks);
             $localCountList = 0;
-            foreach ($itemsLinks as $itemsLink){
+            foreach ($itemsLinks as $itemsLink) {
                 $url = $itemsLink['url'] ?? null;
-                if(!$url){
+                if (!$url || $this->checkExistMeme($url)) {
                     continue;
                 }
                 $service->parseItemPage($url);
@@ -48,12 +47,16 @@ class MemParserController extends Controller
                 $this->stdout("\n" . "Обработано элементов списка $localCountList из $countAllItems");
 
             }
-
-            $countList++;
-            $this->stdout("\n" ."Обработано списоков $countList из $countAllList");
         }
 
-        $this->stdout("\n" ."Найдено $countList списков. Обработано $countitems страниц мемов");
+    }
+    /**
+     * @param $url
+     * @return bool
+     */
+    protected function checkExistMeme($url)
+    {
+        return Meme::find()->byUrl($url)->exists();
     }
 
 }

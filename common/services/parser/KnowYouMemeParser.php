@@ -117,6 +117,12 @@ class KnowYouMemeParser extends BaseObject
         }
     }
 
+    /**
+     * @param string $url
+     * @param int|null $idOnSite
+     * @return array
+     * @throws Exception
+     */
     public function parseItemPage(string $url, int $idOnSite = null)
     {
 
@@ -169,10 +175,7 @@ class KnowYouMemeParser extends BaseObject
 
             //сохраняем в базу
 
-            if(!Meme::find()->byIdOnSite($idOnSite)->exists()){
-                $serviceMem->create([]);
-
-            }
+            $serviceMem->create([]);
 
             return $meme->attributes;
         } catch (\Throwable $exception) {

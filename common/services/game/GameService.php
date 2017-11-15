@@ -238,7 +238,10 @@ class GameService extends BaseObject
             $result = 1;
         }elseif($checkOut & !$checkInner){
             $result = -1;
+        }else{
+            $errors['answer'] =  'Ответ неверный';
         }
+
 
         return $result;
     }
