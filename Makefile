@@ -1,4 +1,6 @@
-build-dev: composer-install-dev migrate-up
+build-dev: composer-install-dev env-dev migrate-up
+
+build-prod: composer-install-prod env-prod migrate-up
 
 composer-install:
 	composer install

@@ -55,8 +55,7 @@ $hintOriginIsUser = $game->getGameHistories()->byType(GameHistory::TYPE_HINT_YEA
                     <div class="list-group">
                         <a href="<?= $hintOriginIsUser ? '#' : Url::to(['hint', 'type' => GameHistory::TYPE_HINT_YEAR_ORIGIN]) ?>"
                            class="list-group-item <?= $hintOriginIsUser ? 'disabled' : '' ?>"
-                           title="<?= $hintOriginIsUser ? 'Подсказка уже использована' : '' ?>"
-                        >
+                           title="<?= $hintOriginIsUser ? 'Подсказка уже использована' : '' ?>">
                             <h4 class="list-group-item-heading">Год возникновения</h4>
                             <p class="list-group-item-text">
                                 - 10 баллов. Можно использовать 1 раз
