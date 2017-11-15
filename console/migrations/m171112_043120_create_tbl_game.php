@@ -17,6 +17,7 @@ class m171112_043120_create_tbl_game extends Migration
             'meme_id' => $this->integer()->notNull(),
             'player_id' => $this->integer()->notNull(),
             'player_is_surrender' => $this->boolean()->notNull()->defaultValue(false)->comment('Игрок сдался?'),
+            'player_is_win' => $this->boolean()->notNull()->defaultValue(false)->comment('Игрок выйграл?'),
             'score' => $this->integer()->notNull()->defaultValue(0)->comment('очки'),
             'status' => $this->integer()->notNull()->defaultValue(0),
             'created_at' => $this->timestamp()->defaultExpression('NOW()'),

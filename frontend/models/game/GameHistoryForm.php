@@ -26,7 +26,7 @@ class GameHistoryForm extends Model
             [['typeHint', 'gameId'], 'required'],
             [['typeHint'], 'in', 'range' => $this->hintTypeList(), 'on' => [self::SCENARIO_USE_HINT]],
 
-            ['gameId', 'exist', 'targetClass' => Game::className(), 'targetAttribute' => ['gameId' => 'id']],
+            ['gameId', 'exist', 'targetClass' => Game::className(), 'targetAttribute' => ['gameId' => 'id'], 'filter' => ['status' => Game::STATUS_ACTIVE]],
 
             ['typeHint', 'validateHint']
         ];

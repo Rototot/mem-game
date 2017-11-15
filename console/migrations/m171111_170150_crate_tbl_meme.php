@@ -22,7 +22,7 @@ class m171111_170150_crate_tbl_meme extends Migration
             'image' => $this->string(255)->notNull(),
             'width' => $this->integer(),
             'height' => $this->integer(),
-            'origin_year' => $this->integer(),
+            'origin_year' => $this->string()->defaultValue('unknown'),
             'tags' => 'JSONB DEFAULT \'{}\' NOT NULL',
             'site_status' => $this->string(20)->notNull(),
             'created_at' => $this->timestamp()->defaultExpression('NOW()'),

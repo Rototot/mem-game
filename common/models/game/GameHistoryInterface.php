@@ -15,6 +15,7 @@ interface GameHistoryInterface
     const TYPE_SKIP_MOVE = 7;                  //сдаться
     const TYPE_SURRENDER = 10;                  //сдаться
     const TYPE_FINISH = 15;                     //конец игры
+    const TYPE_WIN = 16;          //побежа
 
     //подсказки
     const TYPE_HINT_YEAR_ORIGIN = 20;           //год возникновения
@@ -23,6 +24,7 @@ interface GameHistoryInterface
 
 
     const TYPE_CORRECT_ANSWER = 25;          //правильны ответ
+
 
     /**
      * Настройки аттрибутов для каждого типа истории

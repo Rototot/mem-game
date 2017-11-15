@@ -20,7 +20,7 @@ use yii\helpers\Json;
  * @property string $image
  * @property int $width
  * @property int $heigth
- * @property int $origin_year
+ * @property string $origin_year
  * @property string $tags
  * @property string $site_status
  * @property string $created_at
@@ -45,11 +45,11 @@ class Meme extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['id_on_site', 'origin_year'], 'default', 'value' => null],
-            [['id_on_site', 'origin_year', 'width', 'height'], 'integer'],
+            [['id_on_site'], 'default', 'value' => null],
+            [['id_on_site', 'width', 'height'], 'integer'],
             ['id_on_site', 'unique'],
             [['title', 'url', 'image', 'site_status'], 'required'],
-            [['about', 'tags'], 'string'],
+            [['about', 'tags', 'origin_year'], 'string'],
             [['created_at', 'updated_at'], 'safe'],
             [['title', 'url', 'image'], 'string', 'max' => 255],
             [['site_status'], 'string', 'max' => 20],

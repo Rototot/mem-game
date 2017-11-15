@@ -102,6 +102,11 @@ class GameHistory extends \yii\db\ActiveRecord implements GameHistoryInterface
                   'type' => GameHistory::TYPE_FINISH,
                   'score_cost' => 0,
             ],
+            GameHistory::TYPE_WIN => [
+                'title_label' => 'type.win',
+                'type' => GameHistory::TYPE_WIN,
+                'score_cost' => 0,
+            ],
             GameHistory::TYPE_SKIP_MOVE => [
                 'title_label' => 'type.skip_move',
                 'type' => GameHistory::TYPE_SKIP_MOVE,

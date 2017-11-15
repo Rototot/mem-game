@@ -15,6 +15,15 @@ class MemeQuery extends \yii\db\ActiveQuery
     }*/
 
     /**
+     * @param $id
+     * @return $this
+     */
+    public function byIdOnSite($id)
+    {
+        return $this->andWhere(['id_on_site' => $id]);
+    }
+
+    /**
      * @inheritdoc
      * @return Meme[]|array
      */

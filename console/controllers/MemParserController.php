@@ -14,18 +14,46 @@ class MemParserController extends Controller
 {
 
 
+
+
     public function actionParsePage()
     {
+
+
+        //todo очереди
 
         $service = new KnowYouMemeParser();
 
         $url = 'http://knowyourmeme.com/memes';
 
-//        $service->parseItemsList($url);
+        $this->stdout("\n" . 'Старт подготовки мемов');
+        $listLinks = $service->parsePagination($url)['links'] ?? [];
+        $countList = 0;
+        $countitems = 0;
+        $countAllList = count($listLinks);
+        $this->stdout("\n" . 'Найдено списков: ' . $countAllList);
 
-        $url = 'http://knowyourmeme.com/memes/subcultures/true-capitalist-radio';
-        $url = 'http://knowyourmeme.com/memes/wtf-is-this-shit';
-        $service->parseItemPage($url);
+        foreach ($listLinks as $listLink){
+            $itemsLinks = $service->parseItemsList($listLink);
+            $countAllItems = count($itemsLinks);
+            $localCountList = 0;
+            foreach ($itemsLinks as $itemsLink){
+                $url = $itemsLink['url'] ?? null;
+                if(!$url){
+                    continue;
+                }
+                $service->parseItemPage($url);
+                $countitems++;
+                $localCountList++;
+                $this->stdout("\n" . "Обработано элементов списка $localCountList из $countAllItems");
+
+            }
+
+            $countList++;
+            $this->stdout("\n" ."Обработано списоков $countList из $countAllList");
+        }
+
+        $this->stdout("\n" ."Найдено $countList списков. Обработано $countitems страниц мемов");
     }
 
 }

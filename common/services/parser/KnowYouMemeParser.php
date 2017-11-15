@@ -37,18 +37,18 @@ class KnowYouMemeParser extends BaseObject
 
         $pagination = pq($page)->find('#infinite-scroll-wrapper .pagination_bottom .pagination:first');
         $links = [];
-        if($pagination){
+        if ($pagination) {
             $nextBtn = pq($pagination)->find('.next_page:first');
             $prev = pq($nextBtn)->prev();
             $max = $prev ? intval($this->filterBase($prev->text())) : $max;
-        }else{
+        } else {
             $max = 1;
         }
 
         //формируем полный урл, т.к. можно передать и относительный путь
         $fullUrl = $this->getHttpClient()->get($url)->fullUrl;
         //создаем список ссылок на странциы с мемами
-        for($localMin = $min; $localMin <= $max; $localMin++){
+        for ($localMin = $min; $localMin <= $max; $localMin++) {
             $links[] = rtrim($fullUrl, '/') . '/' . 'page/' . $localMin;
         }
 
@@ -64,109 +64,153 @@ class KnowYouMemeParser extends BaseObject
 
     /**
      * @param string $url
-     * @return bool
+     * @return array
      */
     public function parseItemsList(string $url)
     {
-        //парсим список мемов
-        $document = $this->getPage($url);
+        try {
+            //парсим список мемов
+            $document = $this->getPage($url);
 
 
-        $entryListTrs = $document->find('#entries table.entry_list > tbody > tr');
+            $entryListTrs = $document->find('#entries table.entry_list > tbody > tr');
 
-        $items = [];
-        foreach ($entryListTrs as $entryListTr){
-            //парсим элемент
+            $items = [];
+            foreach ($entryListTrs as $entryListTr) {
+                //парсим элемент
 
-            /**
-             * @var $link
-             */
-            $td = pq($entryListTr)->children('td:first');
-            $link = null;
-            $id = -1;
-            if($td){
-                $link = pq($td)->children('a.photo:first');
+                /**
+                 * @var $link
+                 */
+                $td = pq($entryListTr)->children('td:first');
+                $link = null;
+                $id = -1;
+                if ($td) {
+                    $link = pq($td)->children('a.photo:first');
 
-                $id = pq($td)->attr('class');
-                $id = str_replace('entry_', '', $this->filterBase($id));
-                $id = intval($id);
+                    $id = pq($td)->attr('class');
+                    $id = str_replace('entry_', '', $this->filterBase($id));
+                    $id = intval($id);
+                }
+
+                $urlMem = $link ? pq($link)->attr('href') : null;
+                $urlMem = $urlMem ? rtrim($this->baseUrl, '/') . '/' . $urlMem : null;
+
+
+                //todo провеоки
+
+                $itemData = [
+                    'id' => $id,
+                    'url' => $urlMem,
+                ];
+
+                $items[] = $itemData;
             }
 
-            $urlMem = $link ? pq($link)->attr('href') : null;
-            $urlMem = $urlMem ? rtrim($this->baseUrl, '/') . '/' . $urlMem : null;
 
+            //fixme, очередь
+            //кладем в очередь ссылку на элемент для парсинга
 
-
-            //todo провеоки
-
-            $itemData = [
-                'id' => $id,
-                'url' => $urlMem,
-            ];
-
-            $items[] = $itemData;
+            return $items;
+        } catch (\Throwable $exception) {
+            throw new Exception('Ошибка при парсинге ' . $url . ' Error: ' . $exception->getMessage(), 0, $exception);
         }
-
-
-        //кладем в очередь ссылку на элемент для парсинга
-
-        return true;
     }
 
     public function parseItemPage(string $url, int $idOnSite = null)
     {
 
+        try {
 
+            $page = $this->getPage($url);
+            $article = pq($page)->find('#content article.entry:first')->get(0);
+
+
+            //парсим инфу о меме
+            $meme = new Meme();
+
+            //about text
+            $about = pq($page)->find('#about')->next('p:first')->get(0);
+            $meme->about = $about->textContent ?? null;
+
+            //aside
+            $asideYear = pq($page)->find('#entry_body > aside.left dt:contains(Year) + dd:first')->get(0);
+            $meme->origin_year = $this->filterBase($asideYear->textContent ?? null);
+
+            //status
+            $htmlStatus = pq($page)->find('#entry_body > aside.left dt:contains(Status) + dd:first')->get(0);
+            $meme->site_status = $this->filterBase($htmlStatus->textContent ?? null);
+
+
+            //tags
+            $entryTags = pq($page)->find('#entry_tags dt:contains(Tags) + dd > a');
+            $tags = [];
+            foreach ($entryTags as $entryTag) {
+                $tags[] = $this->filterBase($entryTag->textContent ?? null);
+            }
+            $meme->setTagsAsArray($tags);
+
+            //id_mem
+            if (!$idOnSite) {
+                preg_match('/_([0-9]+)$/i', $article->getAttribute('id'), $matches);
+                $idOnSite = intval($this->filterBase($matches[1] ?? null));
+            }
+            $meme->id_on_site = $idOnSite;
+
+            //photo and title
+            $photo = $article ? pq($article)->find('a.photo > img:first')->get(0) : null;
+            if ($photo) {
+                $meme->title = $photo->getAttribute('title');
+                $meme->image = $photo->getAttribute('data-src');
+            }
+
+            $meme->url = $url;
+            $serviceMem = new MemeService($meme);
+
+            //сохраняем в базу
+
+            if(!Meme::find()->byIdOnSite($idOnSite)->exists()){
+                $serviceMem->create([]);
+
+            }
+
+            return $meme->attributes;
+        } catch (\Throwable $exception) {
+            throw new Exception('Ошибка при парсинге ' . $url . ' Error: ' . $exception->getMessage(), 0, $exception);
+        }
+    }
+
+    /**
+     * Проверка ответа в поисковой выдаче
+     * @param string $answer
+     * @param Meme $meme
+     * @return bool
+     */
+    public function checkAnswer(string $answer, Meme $meme)
+    {
+        $url = 'search?q=' . urlencode($answer);
         $page = $this->getPage($url);
-        $article = pq($page)->find('#content article.entry:first')->get(0);
 
+        $trEntries = pq($page)->find('#entries table.entry_list tr:first');
 
-
-        //парсим инфу о меме
-        $meme = new Meme();
-
-        //about text
-        $about = pq($page)->find('#about')->next('p:first')->get(0);
-        $meme->about = $about->textContent ?? null;
-
-         //aside
-        $asideYear = pq($page)->find('#entry_body > aside.left dt:contains(Year) + dd:first')->get(0);
-        $meme->origin_year = $this->filterBase($asideYear->textContent ?? null);
-
-        //status
-        $htmlStatus = pq($page)->find('#entry_body > aside.left dt:contains(Status) + dd:first')->get(0);
-        $meme->site_status = $this->filterBase($htmlStatus->textContent ?? null);
-
-
-        //tags
-        $entryTags = pq($page)->find('#entry_tags dt:contains(Tags) + dd > a');
-        $tags = [];
-        foreach ($entryTags as $entryTag){
-            $tags[] = $this->filterBase($entryTag->textContent ?? null);
-        }
-        $meme->setTagsAsArray($tags);
-
-        //id_mem
-        if(!$idOnSite){
-            preg_match('/_([0-9]+)$/i', $article->getAttribute('id'), $matches);
-            $idOnSite = intval($this->filterBase($matches[1] ?? null));
-        }
-        $meme->id_on_site = $idOnSite;
-
-        //photo and title
-        $photo = $article ? pq($article)->find('a.photo > img:first')->get(0) : null;
-        if($photo){
-            $meme->title = $photo->getAttribute('title');
-            $meme->image = $photo->getAttribute('data-src');
+        if (!isset($trEntries[0])) {
+            return false;
         }
 
-        $meme->url = $url;
-        $serviceMem = new MemeService($meme);
+        //первая позиция выдачи
+        $td = pq($trEntries[0])->find('td:first');
 
-        //сохраняем в базу
-        $serviceMem->create([]);
+        if (!isset($td[0])) {
+            return false;
+        }
 
-        return true;
+        $h2 = pq($td[0])->find('h2');
+        $title = $this->filterBase(pq($h2)->text());
+        if (!strcasecmp($title, $meme->title)) {
+            return true;
+        }
+
+        return false;
     }
 
 
@@ -182,7 +226,7 @@ class KnowYouMemeParser extends BaseObject
         ]);
         $response = $request->send();
 
-        if(!$response->isOk){
+        if (!$response->isOk) {
             throw new Exception('Incorrect response after parse. Reason: status code ' . $response->getStatusCode());
         }
 
@@ -197,7 +241,7 @@ class KnowYouMemeParser extends BaseObject
      */
     public function getHttpClient()
     {
-        if(is_null($this->_httpClient)){
+        if (is_null($this->_httpClient)) {
             $this->_httpClient = new Client([
                 'baseUrl' => $this->baseUrl,
                 'transport' => 'yii\httpclient\CurlTransport'

@@ -15,6 +15,7 @@ use yii\caching\TagDependency;
  * @property int $meme_id
  * @property int $player_id
  * @property boolean $player_is_surrender
+ * @property boolean $player_is_win
  * @property int $score
  * @property int $status
  * @property string $created_at
@@ -51,7 +52,7 @@ class Game extends \yii\db\ActiveRecord
             ['score', 'default', 'value' => 0],
 
             [['meme_id', 'player_id', 'score', 'status'], 'integer'],
-            [['player_is_surrender'], 'boolean'],
+            [['player_is_surrender', 'player_is_win'], 'boolean'],
             ['score', 'default', 'value' => 0],
             [['created_at', 'updated_at'], 'safe'],
             [['meme_id'], 'exist', 'skipOnError' => true, 'targetClass' => Meme::className(), 'targetAttribute' => ['meme_id' => 'id']],
@@ -131,6 +132,14 @@ class Game extends \yii\db\ActiveRecord
     public function defaultStatus()
     {
         return self::STATUS_ACTIVE;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isWin()
+    {
+        return $this->player_is_win;
     }
 
     /**

@@ -12,6 +12,8 @@ use common\models\meme\MemeSection;
 use common\models\meme\MemeSectionQuery;
 use common\models\User;
 use common\services\meme\MemeService;
+use common\services\parser\KnowYouMemeParser;
+use frontend\models\game\GameForm;
 use frontend\models\game\GameHistoryForm;
 use Yii;
 use yii\base\BaseObject;
@@ -78,6 +80,30 @@ class GameService extends BaseObject
     }
 
     /**
+     * Победа
+     * @return Game
+     * @throws Exception
+     */
+    public function win()
+    {
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+
+            $this->writeToStory($this->getGame(),GameHistory::TYPE_CORRECT_ANSWER);
+            $this->writeToStory($this->getGame(),GameHistory::TYPE_WIN);
+
+            $this->getGame()->player_is_win = true;
+            $this->finish();
+
+            $transaction->commit();
+            return $this->getGame();
+        } catch (Exception $e) {
+            $transaction->rollBack();
+            throw $e;
+        }
+    }
+
+    /**
      * Завершаем игру
      * @return Game
      * @throws Exception
@@ -120,10 +146,8 @@ class GameService extends BaseObject
             ]);
 
             $this->writeToStory($game,GameHistory::TYPE_SURRENDER);
-            $this->writeToStory($game, GameHistory::TYPE_FINISH);
 
-            //закрываем сессию
-            $this->removeIdActiveGame();
+            $this->finish();
 
             $transaction->commit();
             return $game;
@@ -185,6 +209,39 @@ class GameService extends BaseObject
         return $service->create($this->getGame(), $type, []);
     }
 
+
+    /**
+     * Проверяем ответ
+     * @param string $answer
+     * @param array $errors
+     * @return int -1|0|1 ; -1 - когда результате на удаленном сайте совпали, но не прошли внутреннюю проверку
+     */
+    public function checkAnswer(?string $answer, ?array &$errors = [])
+    {
+        $gameForm = new GameForm();
+        $gameForm->scenario = GameForm::SCENARIO_CHECK_ANSWER;
+        $gameForm->answer = $answer;
+        $gameForm->game_id = $this->getGame()->id;
+
+        if(!$gameForm->validate()){
+            $errors = $gameForm->firstErrors;
+            return false;
+        }
+        $serviceParse = new KnowYouMemeParser();
+        $checkOut = $serviceParse->checkAnswer($gameForm->answer, $this->getGame()->meme);
+
+        $checkInner = $gameForm->validateAnswer($this->getGame());
+
+        $result = 0;
+
+        if($checkOut & $checkInner){
+            $result = 1;
+        }elseif($checkOut & !$checkInner){
+            $result = -1;
+        }
+
+        return $result;
+    }
 
     /**
      * @return Game|null

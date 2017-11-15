@@ -24,6 +24,10 @@ $this->title = 'Результат последней игры';
                     'model' => $game,
                     'attributes' => [
                         [
+                            'label' => 'Статус',
+                            'value' => $game->isWin() ? 'Победа' : 'Поражение',
+                        ],
+                        [
                             'attribute' => 'score',
                             'value' => Html::tag('span', $game->score),
                             'format' => 'html'

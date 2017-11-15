@@ -165,10 +165,35 @@ class GameController extends Controller
     /**
      * Проверка отввета
      * @return \yii\web\Response
+     * @throws NotFoundHttpException
      */
     public function actionCheckAnswer()
     {
-        //fixme
+
+        $serviceGame = new GameService(new Game());
+        if(!$game = $serviceGame->getActiveGame()){
+            throw new NotFoundHttpException('Not found game');
+        }
+        $serviceGame->setGame($game);
+
+        $gameForm = new GameForm();
+        $gameForm->load(\Yii::$app->request->post());
+
+        $result = $serviceGame->checkAnswer($gameForm->answer, $errors);
+
+        if($result === 1){
+            \Yii::$app->session->setFlash('Вуху! Вы победили! поздравляем');
+            $serviceGame->win();
+            return $this->redirect('result');
+        }elseif($result === -1){
+            \Yii::$app->session->setFlash('info', 'Вам почти удалось, вы близки к правильному ответу.');
+
+        }
+
+        if(!$result && $errors){
+            \Yii::$app->session->setFlash('error', implode(PHP_EOL, $errors));
+        }
+
         //проверям имя мема
         return $this->redirect(['play']);
     }
