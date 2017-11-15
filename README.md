@@ -10,6 +10,10 @@ make build-prod
 * установлен memcache
 
 
+## Тестовый пользователь
+login: user
+password: user
+
 # Игра
 "Угадай мемлодию"
 

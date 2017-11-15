@@ -143,13 +143,14 @@ class Game extends \yii\db\ActiveRecord
     }
 
     /**
+     * @param User $user
      * @return Game|null
      */
-    public static function findLastFinished()
+    public static function findLastFinished(User $user)
     {
         $game = static::find()
             ->finished()
-            ->byPlayer(Yii::$app->user->id)
+            ->byPlayer($user->id)
             ->orderBy('id DESC')
             ->limit(1)
             ->one()

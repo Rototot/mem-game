@@ -37,7 +37,7 @@ class MemSectionService extends BaseObject
         $memeSection->attributes = $attributes;
         $memeSection->meme_id = $meme->id;
 
-        if(!$meme->isNewRecord){
+        if(!$memeSection->isNewRecord){
             throw new Exception('Update not supported');
         }
 

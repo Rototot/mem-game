@@ -12,6 +12,7 @@ use common\models\meme\MemeSection;
 use common\models\meme\MemeSectionQuery;
 use common\models\User;
 use common\services\meme\MemeService;
+use frontend\models\game\GameHistoryForm;
 use Yii;
 use yii\base\BaseObject;
 use yii\base\Exception;
@@ -124,6 +125,7 @@ class GameService extends BaseObject
             //закрываем сессию
             $this->removeIdActiveGame();
 
+            $transaction->commit();
             return $game;
         } catch (Exception $e) {
             $transaction->rollBack();
@@ -158,6 +160,29 @@ class GameService extends BaseObject
             throw $e;
         }
 
+    }
+
+    /**
+     * Используем подсказку
+     * @see GameHistoryInterface
+     * @param int $type
+     * @return GameHistory
+     * @throws UserException
+     */
+    public function useHint(int $type)
+    {
+
+        $form = new GameHistoryForm(['scenario' => GameHistoryForm::SCENARIO_USE_HINT]);
+        $form->typeHint = $type;
+        $form->gameId = $this->getGame()->id;
+
+        if(!$form->validate()){
+            throw new UserException('Incorrect data. ' . implode(PHP_EOL, $form->firstErrors));
+        }
+
+        $service = new GameHistoryService(new GameHistory());
+
+        return $service->create($this->getGame(), $type, []);
     }
 
 
@@ -296,6 +321,20 @@ class GameService extends BaseObject
 
 
     /**
+     * @param GameMemeSection[] $gameMemeSections
+     * @return array
+     */
+    public function prepareGameMemeSections(array $gameMemeSections)
+    {
+        $result = [];
+        foreach ($gameMemeSections as $gameMemeSection) {
+            $result[$gameMemeSection->memeSection->block_x][$gameMemeSection->memeSection->block_y] = $gameMemeSection;
+        }
+
+        return $result;
+    }
+
+    /**
      * Добавляем следующий блок в игру
      * @param Meme $meme
      * @param bool $withVoid - добавлять дополнительный пустой блок с непустым
@@ -339,20 +378,6 @@ class GameService extends BaseObject
         return $result;
     }
 
-
-    /**
-     * @param GameMemeSection[] $gameMemeSections
-     * @return array
-     */
-    public function prepareGameMemeSections(array $gameMemeSections)
-    {
-        $result = [];
-        foreach ($gameMemeSections as $gameMemeSection) {
-            $result[$gameMemeSection->memeSection->block_x][$gameMemeSection->memeSection->block_y] = $gameMemeSection;
-        }
-
-        return $result;
-    }
 
 
     /**

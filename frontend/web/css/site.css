@@ -118,3 +118,11 @@ a.desc:after {
 .nav > li > form > button.logout:focus {
     outline: none;
 }
+
+
+/*#memo*/
+.memo-sections .memo-section img{
+    display: block;
+    height: 100%;
+    width: 100%;
+}

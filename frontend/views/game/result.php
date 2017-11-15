@@ -21,31 +21,37 @@ $this->title = 'Результат последней игры';
                 <br/>
 
                 <?= \yii\widgets\DetailView::widget([
-                'model' => $game,
-                'attributes' => [
-                    [
-                        'attribute' => 'score',
-                        'value' => Html::tag('span', $game->score),
-                        'format' => 'html'
+                    'model' => $game,
+                    'attributes' => [
+                        [
+                            'attribute' => 'score',
+                            'value' => Html::tag('span', $game->score),
+                            'format' => 'html'
+                        ],
+                        'meme.title',
+                        'meme.origin_year',
+                        'meme.about:html',
+                        [
+                            'attribute' => 'meme.url',
+                            'value' => Html::a($game->meme->url, $game->meme->url),
+                            'format' => 'html'
+                        ],
                     ],
-                    'meme.title',
-                    'meme.origin_year',
-                    'meme.about:html',
-                    [
-                        'attribute' => 'meme.url',
-                        'value' => Html::a($game->meme->url, $game->meme->url),
-                        'format' => 'html'
-                    ],
-                ],
-            ]) ?>
-                <p class="text-center">
-                    <?= Html::a('Новая игра', ['/game/start'], ['class' => 'btn btn-success btn-lg']) ?>
-                </p>
+                ]) ?>
+
             <?php else: ?>
                 <p>Не найдено завершенных игр</p>
-                <?= Html::a('Начать новую игру?', ['/game/start'], ['class' => 'btn btn-primary']) ?>
 
             <?php endif; ?>
+
+            <p class="text-center">
+                <?= Html::a('Новая игра', ['/game/start'], [
+                    'class' => 'btn btn-success btn-lg',
+                    'data' => [
+                        'method' => 'post'
+                    ]
+                ]) ?>
+            </p>
 
             <h3>История</h3>
 

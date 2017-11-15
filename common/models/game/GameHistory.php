@@ -20,8 +20,6 @@ use Yii;
  */
 class GameHistory extends \yii\db\ActiveRecord implements GameHistoryInterface
 {
-
-
     /**
      * @inheritdoc
      */
@@ -67,7 +65,7 @@ class GameHistory extends \yii\db\ActiveRecord implements GameHistoryInterface
      */
     public function getTitle()
     {
-        return Yii::t('game-mem-section', $this->title_label);
+        return Yii::t('game-history', $this->title_label);
     }
 
     /**
@@ -97,6 +95,11 @@ class GameHistory extends \yii\db\ActiveRecord implements GameHistoryInterface
             GameHistory::TYPE_START => [
                   'title_label' => 'type.start',
                   'type' => GameHistory::TYPE_START,
+                  'score_cost' => 0,
+            ],
+            GameHistory::TYPE_FINISH => [
+                  'title_label' => 'type.finish',
+                  'type' => GameHistory::TYPE_FINISH,
                   'score_cost' => 0,
             ],
             GameHistory::TYPE_SKIP_MOVE => [

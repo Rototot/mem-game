@@ -19,8 +19,9 @@ use yii\imagine\Image;
 
 class MemeService extends BaseObject
 {
-    const DIVIDE_WIDTH = 16;
-    const DIVIDE_HEIGHT = 16;
+    //размерная сетка
+    const DIVIDE_QTY_BLOCK_X = 5;
+    const DIVIDE_QTY_BLOCK_Y = 5;
 
 
     private $meme;
@@ -115,10 +116,12 @@ class MemeService extends BaseObject
 
     /**
      * Разделение на блоки
-     * @param int $width
-     * @param int $height
+     * @param int $qtyX - количество блоков по оси Х
+     * @param int $qtyY - количество блоков по оси Y
+     * @return bool
+     * @throws Exception
      */
-    public function divide(int $width = self::DIVIDE_WIDTH, int $height = self::DIVIDE_HEIGHT)
+    public function divide(int $qtyX = self::DIVIDE_QTY_BLOCK_X, int $qtyY = self::DIVIDE_QTY_BLOCK_Y)
     {
         $imageData = file_get_contents($this->getMeme()->image);
 
@@ -130,8 +133,9 @@ class MemeService extends BaseObject
 
 
         //идем по изображению
-        $widthBlock = round($imageWidth / $width, 0, PHP_ROUND_HALF_UP);
-        $heightBlock = round($imageHeight / $height, 0, PHP_ROUND_HALF_UP);
+
+        $widthBlock = round($imageWidth / $qtyX, 0, PHP_ROUND_HALF_UP);
+        $heightBlock = round($imageHeight / $qtyY, 0, PHP_ROUND_HALF_UP);
 
 
         $transaction = Yii::$app->db->beginTransaction();
@@ -146,10 +150,11 @@ class MemeService extends BaseObject
             $blockY = 0;
             for ($x = 0; $x < $imageWidth; $x += $widthBlock) {
                 //проверяем границы
-                $newWidth = ($x + $widthBlock) > $imageWidth ? $imageWidth - $x : $width;
+                $newWidth = ($x + $widthBlock) > $imageWidth ? $imageWidth - $x : $widthBlock;
                 $memeSectionService = new MemSectionService(new MemeSection());
                 $blockY = 0;
                 for ($y = 0; $y < $imageHeight; $y += $heightBlock) {
+                    //границы по Y
                     $newHeight = ($y + $heightBlock) > $imageHeight ? $imageHeight - $y : $heightBlock;
 
                     $point = new Point($x, $y);
@@ -164,10 +169,11 @@ class MemeService extends BaseObject
                     $fullPath = Yii::getAlias('@root/' . $dirSave);
                     FileHelper::createDirectory($fullPath);
 
-                    $fileName = 'img_block_' . $x . '_' . $y . '_' . $width . '_' . $height . '.png';
+                    $fileName = 'img_block_' . $x . '_' . $y . '_' . $qtyX . '_' . $qtyY . '.png';
 
                     $fullPath .= '/' . $fileName;
                     $dirSave .= '/' . $fileName;
+                    //вырезаем
                     $newImage = $image->copy()->crop($point, $box)->save(\Yii::getAlias($fullPath));
 
                     //сохраняем в базе секцию

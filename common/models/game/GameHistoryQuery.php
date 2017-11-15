@@ -14,6 +14,30 @@ class GameHistoryQuery extends \yii\db\ActiveQuery
         return $this->andWhere('[[status]]=1');
     }*/
 
+
+    /**
+     * @param $type
+     * @return $this
+     */
+    public function byType($type)
+    {
+        $this->andWhere(['type' => $type]);
+
+        return $this;
+    }
+
+    /**
+     * @param int|array $gameID
+     * @return $this
+     */
+    public function byGame($gameID)
+    {
+        $this->joinWith('game g');
+        $this->andWhere(['g.id' => $gameID]);
+
+        return $this;
+    }
+
     /**
      * @inheritdoc
      * @return GameHistory[]|array

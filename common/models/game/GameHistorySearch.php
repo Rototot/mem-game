@@ -19,6 +19,7 @@ class GameHistorySearch extends GameHistory
     {
         return [
             [['id', 'type', 'game_id', 'score_cost'], 'integer'],
+            [['game_id'], 'required'],
             [['title_label', 'created_at', 'updated_at'], 'safe'],
         ];
     }
@@ -51,9 +52,16 @@ class GameHistorySearch extends GameHistory
 
         $this->load($params);
 
+        $dataProvider->sort = [
+            'defaultOrder' => [
+                'created_at' => SORT_DESC,
+                'id' => SORT_DESC,
+            ]
+        ];
+
         if (!$this->validate()) {
             // uncomment the following line if you do not want to return any records when validation fails
-             $query->where('0=1');
+            $query->where('0=1');
             return $dataProvider;
         }
 

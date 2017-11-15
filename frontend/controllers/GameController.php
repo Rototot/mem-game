@@ -10,9 +10,11 @@ namespace frontend\controllers;
 
 
 use common\models\game\Game;
+use common\models\game\GameHistory;
 use common\models\game\GameHistorySearch;
 use common\services\game\GameService;
 use frontend\models\game\GameForm;
+use frontend\models\game\GameHistoryForm;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
@@ -84,7 +86,10 @@ class GameController extends Controller
 
         //history
         $gameHistorySearch = new GameHistorySearch();
+        $gameHistorySearch->game_id = $game->id;
         $dataProvider = $gameHistorySearch->search([]);
+        $dataProvider->pagination->setPageSize(10);
+
 
         return $this->render('play', [
             'game' => $game,
@@ -140,11 +145,15 @@ class GameController extends Controller
     public function actionResult()
     {
         //последняя игра
-        $game = Game::findLastFinished();
+        $game = Game::findLastFinished(\Yii::$app->user->identity);
 
         //history
         $gameHistorySearch = new GameHistorySearch();
+        $gameHistorySearch->game_id = $game->id ?? null;
         $dataProvider = $gameHistorySearch->search([]);
+        $dataProvider->pagination->setPageSize(10);
+
+
 
         return $this->render('result', [
             'game' => $game,
@@ -159,7 +168,27 @@ class GameController extends Controller
      */
     public function actionCheckAnswer()
     {
+        //fixme
         //проверям имя мема
         return $this->redirect(['play']);
+    }
+
+    /**
+     * используем подсказку
+     * @param $type
+     * @return \yii\web\Response
+     */
+    public function actionHint($type)
+    {
+        $gameService = new GameService(new Game());
+        $gameService->setGame($gameService->getActiveGame());
+
+        $type = intval($type);
+        $gameService->useHint($type);
+
+        \Yii::$app->session->setFlash('success', 'Подсказка активирована');
+
+        return $this->redirect(['play']);
+
     }
 }
