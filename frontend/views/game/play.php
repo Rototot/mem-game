@@ -17,7 +17,7 @@ $this->title = 'Угадай мемасик!';
 
 //todo вынести и дополнительно в кеш
 $hintOriginIsUser = $game->getGameHistories()->byType(GameHistory::TYPE_HINT_YEAR_ORIGIN)->exists();
-
+$existsBlocks = $game->meme->getMemeSections()->blocksNotInGame(Yii::$app->user->identity)->limit(1)->exists();
 ?>
 
 <div class="game">
@@ -94,7 +94,8 @@ $hintOriginIsUser = $game->getGameHistories()->byType(GameHistory::TYPE_HINT_YEA
                                     'method' => 'post',
                                 ]); ?>
                                 <?= Html::submitButton('Пропустить ход и получить следующий блок. (-1 балл)', [
-                                    'class' => 'btn btn-primary btn-block',
+                                    'class' => 'btn btn-primary btn-block' . ($existsBlocks ? '' : ' disabled'),
+                                    'title' => $existsBlocks ? '' : 'Блоки закончились',
                                     'data' => [
                                         'method' => 'post',
                                     ],
@@ -103,13 +104,18 @@ $hintOriginIsUser = $game->getGameHistories()->byType(GameHistory::TYPE_HINT_YEA
                             </div>
                             <div class="col-sm-12">
                                 <?php $form = \yii\widgets\ActiveForm::begin([
+                                    'id' => 'form-answer',
                                     'action' => ['check-answer'],
                                     'method' => 'post',
                                 ]); ?>
                                 <?= $form->field($gameFormAnswer, 'answer')->textInput() ?>
+                                <?php $form::end(); ?>
 
                                 <p>
-                                    <?= Html::submitButton('Ответить (+10 баллов)', ['class' => 'btn btn-success']) ?>
+                                    <?= Html::submitButton('Ответить (+10 баллов)', [
+                                            'class' => 'btn btn-success',
+                                            'form' => 'form-answer'
+                                    ]) ?>
                                     <?= Html::a('Сдаться!', ['/game/surrender'], [
                                         'class' => 'btn btn-danger',
                                         'data' => [
@@ -117,8 +123,6 @@ $hintOriginIsUser = $game->getGameHistories()->byType(GameHistory::TYPE_HINT_YEA
                                         ],
                                     ]) ?>
                                 </p>
-
-                                <?php $form::end(); ?>
                             </div>
                         </div>
 

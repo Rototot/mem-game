@@ -89,8 +89,8 @@ class GameService extends BaseObject
         $transaction = Yii::$app->db->beginTransaction();
         try {
 
-            $this->writeToStory($this->getGame(),GameHistory::TYPE_CORRECT_ANSWER);
-            $this->writeToStory($this->getGame(),GameHistory::TYPE_WIN);
+            $this->writeToStory($this->getGame(), GameHistory::TYPE_CORRECT_ANSWER);
+            $this->writeToStory($this->getGame(), GameHistory::TYPE_WIN);
 
             $this->getGame()->player_is_win = true;
             $this->finish();
@@ -145,7 +145,7 @@ class GameService extends BaseObject
                 'player_is_surrender' => true,
             ]);
 
-            $this->writeToStory($game,GameHistory::TYPE_SURRENDER);
+            $this->writeToStory($game, GameHistory::TYPE_SURRENDER);
 
             $this->finish();
 
@@ -160,7 +160,7 @@ class GameService extends BaseObject
 
     /**
      * Пропуск хода. -1 балл. Получаем следующий блок
-     * @return MemeSection
+     * @return MemeSection[]|null
      * @throws Exception
      */
     public function skipMove()
@@ -168,8 +168,12 @@ class GameService extends BaseObject
         //пропускается ход
         $transaction = Yii::$app->db->beginTransaction();
         try {
-            $memeSection = $this->addNextRandomBlock($this->getGame()->meme);
+            $memeSections = $this->addNextRandomBlock($this->getGame()->meme);
 
+            //если блоки кончились
+            if (empty($memeSections)) {
+                return null;
+            }
             $this->update([
                 'score' => $this->getGame()->score - 1
             ]);
@@ -178,7 +182,7 @@ class GameService extends BaseObject
 
             $transaction->commit();
 
-            return $memeSection;
+            return $memeSections;
         } catch (Exception $e) {
             $transaction->rollBack();
             throw $e;
@@ -200,7 +204,7 @@ class GameService extends BaseObject
         $form->typeHint = $type;
         $form->gameId = $this->getGame()->id;
 
-        if(!$form->validate()){
+        if (!$form->validate()) {
             throw new UserException('Incorrect data. ' . implode(PHP_EOL, $form->firstErrors));
         }
 
@@ -223,7 +227,7 @@ class GameService extends BaseObject
         $gameForm->answer = $answer;
         $gameForm->game_id = $this->getGame()->id;
 
-        if(!$gameForm->validate()){
+        if (!$gameForm->validate()) {
             $errors = $gameForm->firstErrors;
             return false;
         }
@@ -234,12 +238,12 @@ class GameService extends BaseObject
 
         $result = 0;
 
-        if($checkOut & $checkInner){
+        if ($checkOut & $checkInner) {
             $result = 1;
-        }elseif($checkOut & !$checkInner){
+        } elseif ($checkOut & !$checkInner) {
             $result = -1;
-        }else{
-            $errors['answer'] =  'Ответ неверный';
+        } else {
+            $errors['answer'] = 'Ответ неверный';
         }
 
 
@@ -267,7 +271,7 @@ class GameService extends BaseObject
 
             //последняя активная игра, если сессия умерла
             $lasActiveGame = Game::find()->byPlayer($user->id)->active()->orderBy('created_at DESC')->limit(1)->one();
-            if($lasActiveGame){
+            if ($lasActiveGame) {
                 $this->setIdActiveGame($lasActiveGame->id);
             }
 
@@ -296,7 +300,7 @@ class GameService extends BaseObject
         $game->meme_id = $meme->id;
 
 
-        if(!$game->isNewRecord){
+        if (!$game->isNewRecord) {
             throw new Exception('Update not supported');
         }
 
@@ -326,7 +330,7 @@ class GameService extends BaseObject
             $game->meme_id = $meme->id;
         }
 
-        if($game->isNewRecord){
+        if ($game->isNewRecord) {
             throw new Exception('Insert not supported');
         }
 
@@ -403,23 +407,10 @@ class GameService extends BaseObject
      */
     protected function addNextRandomBlock(Meme $meme, $withVoid = true)
     {
-        $subQuery = $meme->getMemeSections()
-            ->alias('ms')
-            ->select('ms.id')
-            ->excludeActiveInGame(Yii::$app->user->identity);
-
-        $memeSectionQuery = $meme->getMemeSections()
-            ->andWhere(['not in', 'id', $subQuery])
-            //todo оптимизировать
-            ->orderBy(new Expression('RANDOM()'))
-            ->limit(1);
-
-        //получаем блок сразу одним запросом
-        if ($withVoid) {
-            $memeSectionQuery->union((clone $memeSectionQuery)->void(true));
-        }
         //основной запрос возвращает непустые
-        $memeSectionQuery->void(false);
+        $memeSectionQuery = $meme->getMemeSections()
+            ->blocksNotInGame(Yii::$app->user->identity, $withVoid)
+            ->limit(1);
 
         $memeSections = $memeSectionQuery->all();
 
@@ -437,7 +428,6 @@ class GameService extends BaseObject
 
         return $result;
     }
-
 
 
     /**

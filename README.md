@@ -12,6 +12,54 @@ make build-prod
 ```
 php yii mem-parser/parse-page
 ```
+## Nginx конфиг
+```
+server {
+       charset utf-8;
+       client_max_body_size 128M;
+       listen 80; ## listen for ipv4
+       #listen [::]:80 default_server ipv6only=on; ## listen for ipv6
+
+       server_name meme-game.local;
+       root        {dir_project};
+       index       index.php;
+
+       #access_log  /var/www/logs/meme-game/access.log;
+       #error_log   /var/www/logs/meme-game/error.log;
+
+       location / {
+		root {dir_project}/frontend/web;
+		try_files $uri /frontend/web/index.php?$args;
+		# avoiding processing of calls to non-existing static files by Yii
+		location ~ \.(js|css|png|jpg|gif|swf|ico|pdf|mov|fla|zip|rar)$ {
+			access_log  on;
+			expires  360d;
+
+			try_files  $uri =404;
+		}
+	}
+
+
+    location /upload/{
+		root  {dir_project};
+	}
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        #
+        #	# With php7.0-cgi alone:
+        #	fastcgi_pass 127.0.0.1:9000;
+        # With php7.0-fpm:
+        fastcgi_pass unix:/run/php/php7.1-fpm.sock;
+    }
+
+	location ~ /\.(ht|svn|git) {
+		deny all;
+	}
+   }
+
+```
+
 
 ## Тестовый пользователь
 login: user

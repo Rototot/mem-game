@@ -47,9 +47,14 @@ class MemParserController extends Controller
                 $this->stdout("\n" . "Обработано элементов списка $localCountList из $countAllItems");
 
             }
+
+            $countList++;
+            $this->stdout("\n" . "Обработано списков $countList из $countAllList");
         }
 
+        $this->stdout("\n" . "Найдено $countList списков. Обработано $countitems страниц мемов");
     }
+
     /**
      * @param $url
      * @return bool
